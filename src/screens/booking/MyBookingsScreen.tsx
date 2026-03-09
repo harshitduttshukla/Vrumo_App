@@ -1,56 +1,87 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
-import BookingCard, { BookingType } from '../../components/BookingCard';
-import colors from '../../utils/colors';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import BookingCard from '../../components/BookingCard';
+import Loader from '../../components/Loader';
+import { Booking } from '../../types/booking';
 
-const dummyBookings: BookingType[] = [
-  { id: '1', serviceName: 'Prime Sedan', vehicleType: 'Cyber City to IGI Airport', price: '450', date: '28 Oct 2023', timeSlot: '10:00 AM', status: 'Completed' },
-  { id: '2', serviceName: 'Bike', vehicleType: 'Metro Sta. to Office', price: '49', date: '20 Oct 2023', timeSlot: '04:00 PM', status: 'Completed' },
-  { id: '3', serviceName: 'Mini', vehicleType: 'Home to Mall', price: '190', date: '10 Oct 2023', timeSlot: '11:00 AM', status: 'Cancelled' },
+const mockBookings: Booking[] = [
+  {
+    id: '1',
+    serviceId: 'Exterior Wash',
+    vehicleType: 'Car',
+    vehicleModel: 'Tata Nexon',
+    date: '2023-11-20',
+    time: '10:00 AM - 12:00 PM',
+    price: 199,
+    status: 'Completed',
+  },
+  {
+    id: '2',
+    serviceId: 'Premium Detailing',
+    vehicleType: 'Bike',
+    vehicleModel: 'Royal Enfield',
+    date: '2023-12-05',
+    time: '02:00 PM - 04:00 PM',
+    price: 499,
+    status: 'Confirmed',
+  },
 ];
 
-export default function MyBookingsScreen() {
-  const [filter, setFilter] = useState('All');
-  const filters = ['All', 'Upcoming', 'Completed', 'Cancelled'];
+const MyBookingsScreen: React.FC = () => {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setBookings(mockBookings);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Rides</Text>
-      </View>
-      <View style={styles.filterContainer}>
-        <FlatList 
-          horizontal showsHorizontalScrollIndicator={false} data={filters} keyExtractor={item => item}
-          contentContainerStyle={{ paddingHorizontal: 20 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.filterChip, filter === item && styles.filterChipActive]}
-              onPress={() => setFilter(item)}
-            >
-              <Text style={[styles.filterText, filter === item && styles.filterTextActive]}>{item}</Text>
-            </TouchableOpacity>
-          )}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>My Bookings</Text>
+        <FlatList
+          data={bookings}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => <BookingCard booking={item} />}
+          ListEmptyComponent={<Text style={styles.emptyText}>No bookings found.</Text>}
         />
       </View>
-      <FlatList 
-        data={filter === 'All' ? dummyBookings : dummyBookings.filter(b => b.status === filter)}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <BookingCard booking={item} />}
-      />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.secondary },
-  header: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 },
-  title: { fontSize: 32, fontWeight: '900', color: colors.primary, letterSpacing: -0.5 },
-  filterContainer: { marginBottom: 16 },
-  filterChip: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, backgroundColor: colors.white, marginRight: 12, borderWidth: 1, borderColor: colors.border },
-  filterChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  filterText: { fontSize: 14, fontWeight: '600', color: colors.textLight },
-  filterTextActive: { color: colors.accent },
-  list: { paddingHorizontal: 20, paddingBottom: 40 }
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  listContainer: {
+    paddingBottom: 24,
+  },
+  emptyText: {
+    textAlign: 'center',
+    color: '#64748B',
+    marginTop: 40,
+    fontSize: 16,
+  },
 });
+
+export default MyBookingsScreen;

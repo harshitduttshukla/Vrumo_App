@@ -1,126 +1,156 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ImageBackground, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import colors from '../../utils/colors';
-import VehicleCard, { VehicleType } from '../../components/VehicleCard';
-import PrimaryButton from '../../components/PrimaryButton';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
+import ServiceCard from '../../components/ServiceCard';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
-const VEHICLES: VehicleType[] = [
-  { id: '1', name: 'Mini', type: 'Hatchback', price: 149, eta: '3 min', capacity: 4, image: 'https://cdn3d.iconscout.com/3d/premium/thumb/car-4993630-4161756.png' },
-  { id: '2', name: 'Auto', type: 'Rickshaw', price: 89, eta: '2 min', capacity: 3, image: 'https://cdn3d.iconscout.com/3d/premium/thumb/auto-rickshaw-6844976-5616422.png' },
-  { id: '3', name: 'Bike', type: 'Motorcycle', price: 49, eta: '1 min', capacity: 1, image: 'https://cdn3d.iconscout.com/3d/premium/thumb/motorcycle-4993645-4161771.png' },
-  { id: '4', name: 'Prime Sedan', type: 'Sedan', price: 219, eta: '5 min', capacity: 4, image: 'https://cdn3d.iconscout.com/3d/premium/thumb/sedan-car-4993641-4161767.png' },
-  { id: '5', name: 'Prime SUV', type: 'SUV', price: 349, eta: '8 min', capacity: 6, image: 'https://cdn3d.iconscout.com/3d/premium/thumb/suv-car-4993646-4161772.png' },
-];
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MainTabs'>;
 
-export default function HomeScreen({ navigation }: any) {
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>(VEHICLES[0]);
-
-  return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80' }}
-        style={styles.mapBackground}
-      >
-        <View style={styles.mapOverlay} />
-
-        <SafeAreaView style={styles.safeArea}>
-          {/* Header Glassmorphism */}
-          <View style={styles.headerGlass}>
-            <View style={styles.avatar}>
-              <Ionicons name="menu" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.locationInputBox}>
-              <View style={styles.locationRow}>
-                <View style={styles.dotGreen} />
-                <Text style={styles.locationText}>Current Location</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.locationRow}>
-                <View style={styles.dotRed} />
-                <Text style={styles.locationTextHint}>Where to?</Text>
-              </View>
-            </View>
-          </View>
-        </SafeAreaView>
-
-        {/* Center Map Pin */}
-        <View style={styles.centerPin}>
-          <View style={styles.pinBubble}>
-            <Text style={styles.pinText}>{selectedVehicle.eta}</Text>
-          </View>
-          <Ionicons name="location" size={40} color={colors.primary} />
-        </View>
-
-        {/* Bottom Sheet UI */}
-        <View style={styles.bottomSheet}>
-          <View style={styles.sheetHandle} />
-
-          <Text style={styles.sheetTitle}>Choose a ride</Text>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.vehicleList}
-          >
-            {VEHICLES.map(v => (
-              <VehicleCard
-                key={v.id}
-                vehicle={v}
-                isSelected={selectedVehicle.id === v.id}
-                onPress={() => setSelectedVehicle(v)}
-              />
-            ))}
-          </ScrollView>
-
-          <View style={styles.actionContainer}>
-            <PrimaryButton
-              title={`Book ₹{selectedVehicle.name}`}
-              onPress={() => navigation.navigate('Booking', { vehicle: selectedVehicle })}
-            />
-          </View>
-        </View>
-
-      </ImageBackground>
-    </View>
-  );
+interface Props {
+  navigation: HomeScreenNavigationProp;
 }
 
+const services = [
+  {
+    id: 'car-1',
+    name: 'Exterior Wash',
+    description: 'High-pressure foam wash',
+    price: 199,
+    image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'car' as const,
+  },
+  {
+    id: 'car-2',
+    name: 'Interior Cleaning',
+    description: 'Vacuuming and dashboard polishing',
+    price: 399,
+    image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'car' as const,
+  },
+  {
+    id: 'car-3',
+    name: 'Full Deep Cleaning',
+    description: 'Complete interior and exterior detailing',
+    price: 999,
+    image: 'https://images.unsplash.com/photo-1620063251760-4966601ad8ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'car' as const,
+  },
+  {
+    id: 'car-4',
+    name: 'Ceramic Coating',
+    description: 'Premium paint protection',
+    price: 2999,
+    image: 'https://images.unsplash.com/photo-1550935579-22a4505fccb3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'car' as const,
+  },
+  {
+    id: 'bike-1',
+    name: 'Bike Wash',
+    description: 'Foam wash for bikes',
+    price: 99,
+    image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'bike' as const,
+  },
+  {
+    id: 'bike-2',
+    name: 'Chain Cleaning',
+    description: 'Thorough chain cleaning and lubing',
+    price: 149,
+    image: 'https://images.unsplash.com/photo-1558981033-0f0309284409?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'bike' as const,
+  },
+  {
+    id: 'bike-3',
+    name: 'Bike Polishing',
+    description: 'Wax polish to restore shine',
+    price: 249,
+    image: 'https://images.unsplash.com/photo-1621245086812-401476b7bd4d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'bike' as const,
+  },
+  {
+    id: 'bike-4',
+    name: 'Premium Detailing',
+    description: 'Full body detailed cleaning',
+    price: 499,
+    image: 'https://images.unsplash.com/photo-1609149724103-605a92bf6544?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    category: 'bike' as const,
+  },
+];
+
+const HomeScreen: React.FC<Props> = ({ navigation }) => {
+  const handleBook = (service: any) => {
+    navigation.navigate('ServiceDetails', { service });
+  };
+
+  const carServices = services.filter((s) => s.category === 'car');
+  const bikeServices = services.filter((s) => s.category === 'bike');
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerTitle}>Premium Car & Bike Cleaning</Text>
+          <Text style={styles.bannerSubtitle}>At Your Doorstep</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>🚗 Car Cleaning</Text>
+        <View style={styles.cardContainer}>
+          {carServices.map((service) => (
+            <ServiceCard key={service.id} service={service} onPress={() => handleBook(service)} />
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>🏍 Bike Cleaning</Text>
+        <View style={styles.cardContainer}>
+          {bikeServices.map((service) => (
+            <ServiceCard key={service.id} service={service} onPress={() => handleBook(service)} />
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  mapBackground: { flex: 1, justifyContent: 'space-between' },
-  mapOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.2)' },
-  safeArea: { flex: 1 },
-  headerGlass: {
-    backgroundColor: colors.glass,
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 24,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  container: {
     padding: 16,
-    flexDirection: 'row',
+  },
+  banner: {
+    backgroundColor: '#0F172A',
+    padding: 24,
+    borderRadius: 16,
+    marginBottom: 24,
     alignItems: 'center',
-    shadowColor: colors.primary, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10,
+    shadowColor: '#FBBF24',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', marginRight: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
-  locationInputBox: { flex: 1 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
-  dotGreen: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success, marginRight: 12 },
-  dotRed: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.error, marginRight: 12 },
-  locationText: { fontSize: 16, fontWeight: '700', color: colors.text },
-  locationTextHint: { fontSize: 16, fontWeight: '600', color: colors.textLight },
-  divider: { height: 1, backgroundColor: colors.border, marginLeft: 22 },
-  centerPin: { position: 'absolute', top: '40%', left: '50%', transform: [{ translateX: -20 }, { translateY: -40 }], alignItems: 'center' },
-  pinBubble: { backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginBottom: 4 },
-  pinText: { color: colors.white, fontWeight: 'bold', fontSize: 12 },
-  bottomSheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingVertical: 16,
-    shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 20,
+  bannerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 8,
   },
-  sheetHandle: { width: 40, height: 5, borderRadius: 3, backgroundColor: colors.border, alignSelf: 'center', marginBottom: 20 },
-  sheetTitle: { fontSize: 22, fontWeight: '900', color: colors.primary, paddingHorizontal: 24, marginBottom: 16, letterSpacing: -0.5 },
-  vehicleList: { paddingHorizontal: 24, paddingBottom: 16 },
-  actionContainer: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 30 },
+  bannerSubtitle: {
+    fontSize: 16,
+    color: '#FBBF24',
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  cardContainer: {
+    marginBottom: 24,
+  },
 });
+
+export default HomeScreen;

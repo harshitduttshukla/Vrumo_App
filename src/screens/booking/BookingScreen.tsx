@@ -1,113 +1,152 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
-import PrimaryButton from '../../components/PrimaryButton';
-import colors from '../../utils/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { VehicleType } from '../../components/VehicleCard';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
+import InputField from '../../components/InputField';
+import CustomButton from '../../components/CustomButton';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
-export default function BookingScreen({ route, navigation }: any) {
-  const { vehicle } = route.params as { vehicle: VehicleType };
+type BookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Booking'>;
+type BookingScreenRouteProp = RouteProp<RootStackParamList, 'Booking'>;
+
+interface Props {
+  navigation: BookingScreenNavigationProp;
+  route: BookingScreenRouteProp;
+}
+
+const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { service } = route.params;
+
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [vehicleModel, setVehicleModel] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleConfirmRide = () => {
+  const handleConfirm = () => {
+    if (!name || !phone || !address || !vehicleModel || !date || !time) {
+      Alert.alert('Error', 'Please fill all details');
+      return;
+    }
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      Alert.alert('Booking Confirmed', `Your ₹{vehicle.name} is arriving in ₹{vehicle.eta}!`, [
-        { text: 'View Ride', onPress: () => navigation.navigate('MainTabs', { screen: 'Bookings' }) }
+      Alert.alert('Success', 'Booking Confirmed!', [
+        { text: 'OK', onPress: () => navigation.popToTop() }
       ]);
     }, 1500);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Confirm Ride</Text>
-        <View style={{ width: 44 }} />
-      </View>
-
-      <View style={styles.content}>
-
-        {/* Map Route Card */}
-        <View style={styles.routeCard}>
-          <View style={styles.routeLineContainer}>
-            <View style={styles.dotGreen} />
-            <View style={styles.line} />
-            <View style={styles.dotRed} />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Booking Summary</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Service:</Text>
+            <Text style={styles.value}>{service.name}</Text>
           </View>
-          <View style={styles.routeDetails}>
-            <View style={styles.locationBlock}>
-              <Text style={styles.locationTitle}>Pickup</Text>
-              <Text style={styles.locationValue}>Current Location</Text>
-            </View>
-            <View style={styles.locationBlock}>
-              <Text style={styles.locationTitle}>Drop-off</Text>
-              <Text style={styles.locationValue}>Cyber City, DLF Phase 2</Text>
-            </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Vehicle:</Text>
+            <Text style={styles.value}>{vehicleModel || 'N/A'}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Price:</Text>
+            <Text style={styles.price}>₹{service.price}</Text>
           </View>
         </View>
 
-        {/* Vehicle Details */}
-        <View style={styles.vehicleCard}>
-          <View style={styles.vehicleImageBg}>
-            <Image source={{ uri: vehicle.image }} style={styles.vehicleImage} resizeMode="contain" />
-          </View>
-          <View style={styles.vehicleInfo}>
-            <Text style={styles.vehicleName}>{vehicle.name}</Text>
-            <Text style={styles.vehicleType}>{vehicle.type} • {vehicle.capacity} Seats</Text>
-          </View>
-          <View style={styles.priceInfo}>
-            <Text style={styles.price}>₹{vehicle.price}</Text>
-          </View>
+        <View style={styles.form}>
+          <Text style={styles.sectionTitle}>Your Details</Text>
+          <InputField label="Name" placeholder="Enter full name" value={name} onChangeText={setName} />
+          <InputField label="Phone Number" placeholder="Enter phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <InputField label="Address" placeholder="Enter complete address" value={address} onChangeText={setAddress} />
+          <InputField label="Vehicle Model" placeholder="e.g. Tata Nexon or Royal Enfield" value={vehicleModel} onChangeText={setVehicleModel} />
+          <InputField label="Date" placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
+          <InputField label="Time Slot" placeholder="e.g. 10:00 AM - 12:00 PM" value={time} onChangeText={setTime} />
         </View>
-
-        {/* Payment Method */}
-        <View style={styles.paymentCard}>
-          <Ionicons name="cash-outline" size={24} color={colors.success} />
-          <Text style={styles.paymentText}>Cash on Trip</Text>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </View>
-
-      </View>
-
+      </ScrollView>
       <View style={styles.footer}>
-        <PrimaryButton
-          title={`Confirm Booking • ₹₹{vehicle.price}`}
-          onPress={handleConfirmRide}
-          loading={loading}
-        />
+        <CustomButton title="Confirm Booking" onPress={handleConfirm} loading={loading} />
       </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.secondary },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16 },
-  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8 },
-  headerTitle: { fontSize: 20, fontWeight: '900', color: colors.primary },
-  content: { padding: 20, flex: 1 },
-  routeCard: { backgroundColor: colors.white, padding: 20, borderRadius: 24, flexDirection: 'row', marginBottom: 20, shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4 },
-  routeLineContainer: { alignItems: 'center', marginRight: 16 },
-  dotGreen: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.success },
-  line: { width: 2, height: 40, backgroundColor: colors.border, marginVertical: 4 },
-  dotRed: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.error },
-  routeDetails: { flex: 1, justifyContent: 'space-between' },
-  locationBlock: {},
-  locationTitle: { fontSize: 13, color: colors.textLight, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  locationValue: { fontSize: 16, color: colors.text, fontWeight: '800' },
-  vehicleCard: { backgroundColor: colors.white, padding: 16, borderRadius: 24, flexDirection: 'row', alignItems: 'center', marginBottom: 20, shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4 },
-  vehicleImageBg: { width: 70, height: 70, backgroundColor: colors.secondary, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  vehicleImage: { width: '80%', height: '80%' },
-  vehicleInfo: { flex: 1 },
-  vehicleName: { fontSize: 20, fontWeight: '900', color: colors.text, marginBottom: 4 },
-  vehicleType: { fontSize: 14, color: colors.textLight, fontWeight: '600' },
-  priceInfo: { alignItems: 'flex-end' },
-  price: { fontSize: 24, fontWeight: '900', color: colors.primary },
-  paymentCard: { backgroundColor: colors.white, padding: 20, borderRadius: 20, flexDirection: 'row', alignItems: 'center', shadowColor: colors.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4 },
-  paymentText: { flex: 1, fontSize: 16, fontWeight: '700', color: colors.text, marginLeft: 16 },
-  footer: { padding: 24, backgroundColor: colors.white, borderTopLeftRadius: 32, borderTopRightRadius: 32, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 15 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  container: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  summaryCard: {
+    backgroundColor: '#0F172A',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  summaryTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderColor: '#334155',
+    paddingBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 16,
+    color: '#94A3B8',
+  },
+  value: {
+    fontSize: 16,
+    color: '#F8FAFC',
+    fontWeight: '600',
+  },
+  price: {
+    fontSize: 18,
+    color: '#FBBF24',
+    fontWeight: 'bold',
+  },
+  form: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 16,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderColor: '#E2E8F0',
+  },
 });
+
+export default BookingScreen;

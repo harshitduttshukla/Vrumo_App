@@ -1,77 +1,49 @@
-import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, KeyboardTypeOptions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import colors from '../utils/colors';
+import React from 'react';
+import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
 
-interface InputFieldProps {
-  label?: string;
-  placeholder?: string;
-  value?: string;
-  onChangeText?: (text: string) => void;
-  secureTextEntry?: boolean;
-  keyboardType?: KeyboardTypeOptions;
-  icon?: keyof typeof Ionicons.glyphMap;
+interface Props extends TextInputProps {
+  label: string;
+  error?: string;
 }
 
-export default function InputField({ label, placeholder, value, onChangeText, secureTextEntry, keyboardType, icon }: InputFieldProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
+const InputField: React.FC<Props> = ({ label, error, ...props }) => {
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputContainer, isFocused && styles.focused]}>
-        {icon && <Ionicons name={icon} size={20} color={isFocused ? colors.primary : colors.textLight} style={styles.icon} />}
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textLight}
-          value={value}
-          onChangeText={onChangeText}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-        />
-      </View>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput style={[styles.input, error && styles.inputError]} {...props} placeholderTextColor="#9CA3AF" />
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
-    color: colors.text,
-    marginBottom: 8,
     fontWeight: '600',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    height: 56,
-  },
-  focused: {
-    borderColor: colors.accent,
-    backgroundColor: colors.white,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  icon: {
-    marginRight: 12,
+    color: '#334155',
+    marginBottom: 8,
   },
   input: {
-    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     fontSize: 16,
-    color: colors.text,
-  }
+    color: '#0F172A',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 4,
+  },
 });
+
+export default InputField;

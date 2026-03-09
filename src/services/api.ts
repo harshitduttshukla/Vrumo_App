@@ -1,16 +1,18 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const API_URL = 'http://localhost:3000/api';
-
-const api = axios.create({ baseURL: API_URL });
-
-api.interceptors.request.use(async (config) => {
-  const token = await AsyncStorage.getItem('token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ₹{token}`;
-  }
-  return config;
+const api = axios.create({
+  baseURL: 'https://api.vrumo.in', // Mock API
+  timeout: 10000,
 });
+
+export const getServices = async () => {
+  // return api.get('/api/services');
+  return { data: [] }; // Mock response
+};
+
+export const createBooking = async (bookingData: any) => {
+  // return api.post('/api/bookings', bookingData);
+  return { status: 201 }; // Mock response
+};
 
 export default api;

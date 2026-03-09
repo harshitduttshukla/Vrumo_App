@@ -1,79 +1,103 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, SafeAreaView } from 'react-native';
 import InputField from '../../components/InputField';
-import PrimaryButton from '../../components/PrimaryButton';
-import colors from '../../utils/colors';
+import CustomButton from '../../components/CustomButton';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
-export default function LoginScreen({ navigation }: any) {
+type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
+
+interface Props {
+  navigation: LoginScreenNavigationProp;
+}
+
+const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      // Dummy success
+      navigation.replace('MainTabs');
+    }, 1000);
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to Vrumo for premium services.</Text>
+          <Text style={styles.title}>Welcome to Vrumo</Text>
+          <Text style={styles.subtitle}>Premium Doorstep Car & Bike Cleaning</Text>
         </View>
-
         <View style={styles.form}>
-          <InputField 
-            label="Email / Mobile Number"
-            placeholder="Enter your email or mobile"
+          <InputField
+            label="Email"
+            placeholder="Enter your email"
             value={email}
             onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
-          <InputField 
+          <InputField
             label="Password"
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
-          <TouchableOpacity style={styles.forgot}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          <PrimaryButton title="Login" onPress={() => navigation.replace('MainTabs')} style={styles.btn} />
-
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.divider} />
-          </View>
-
-          <TouchableOpacity style={styles.googleBtn}>
-            <Text style={styles.googleBtnText}>Continue with Google</Text>
-          </TouchableOpacity>
+          <CustomButton title="Login" onPress={handleLogin} loading={loading} />
+          <Text style={styles.registerText} onPress={() => navigation.navigate('Register')}>
+            Don't have an account? <Text style={styles.registerLink}>Register</Text>
+          </Text>
         </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.footerLink}>Create Account</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  scroll: { padding: 24, flexGrow: 1, justifyContent: 'center' },
-  header: { marginBottom: 32 },
-  title: { fontSize: 32, fontWeight: 'bold', color: colors.primary, marginBottom: 8 },
-  subtitle: { fontSize: 16, color: colors.textLight },
-  form: { marginBottom: 32 },
-  forgot: { alignSelf: 'flex-end', marginBottom: 24 },
-  forgotText: { color: colors.primary, fontWeight: '600' },
-  btn: { marginBottom: 24 },
-  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  divider: { flex: 1, height: 1, backgroundColor: colors.border },
-  dividerText: { marginHorizontal: 16, color: colors.textLight, fontWeight: 'bold' },
-  googleBtn: { borderWidth: 1, borderColor: colors.border, paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-  googleBtnText: { color: colors.text, fontSize: 16, fontWeight: 'bold' },
-  footer: { flexDirection: 'row', justifyContent: 'center' },
-  footerText: { color: colors.textLight },
-  footerLink: { color: colors.primary, fontWeight: 'bold' }
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+  },
+  header: {
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  form: {
+    width: '100%',
+  },
+  registerText: {
+    marginTop: 20,
+    textAlign: 'center',
+    color: '#475569',
+  },
+  registerLink: {
+    color: '#FBBF24',
+    fontWeight: 'bold',
+  },
 });
+
+export default LoginScreen;

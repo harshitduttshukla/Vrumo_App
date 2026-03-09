@@ -1,54 +1,119 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import InputField from '../../components/InputField';
-import PrimaryButton from '../../components/PrimaryButton';
-import colors from '../../utils/colors';
+import CustomButton from '../../components/CustomButton';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
-export default function RegisterScreen({ navigation }: any) {
+type RegisterScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Register'>;
+
+interface Props {
+  navigation: RegisterScreenNavigationProp;
+}
+
+const RegisterScreen: React.FC<Props> = ({ navigation }) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = () => {
+    if (!name || !email || !phone || !password) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
+    }
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      Alert.alert('Success', 'Registered Successfully!', [
+        { text: 'OK', onPress: () => navigation.replace('Login') }
+      ]);
+    }, 1000);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Vrumo for premium vehicle cleaning.</Text>
+          <Text style={styles.subtitle}>Join Vrumo for Premium Services</Text>
         </View>
-
         <View style={styles.form}>
-          <InputField label="Full Name" placeholder="e.g. Rahul Sharma" />
-          <InputField label="Email" placeholder="your@email.com" />
-          <InputField label="Mobile Number" placeholder="+91 xxxxxxxxxx" keyboardType="phone-pad" />
-          <InputField label="Password" placeholder="Create a password" secureTextEntry />
-          
-          <PrimaryButton 
-            title="Create Account" 
-            onPress={() => {
-              Alert.alert('Success', 'Account created successfully!');
-              navigation.replace('MainTabs');
-            }} 
-            style={styles.btn} 
+          <InputField
+            label="Full Name"
+            placeholder="Enter your name"
+            value={name}
+            onChangeText={setName}
           />
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.footerLink}>Login</Text>
-          </TouchableOpacity>
+          <InputField
+            label="Email"
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <InputField
+            label="Phone Number"
+            placeholder="Enter your phone number"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+          <InputField
+            label="Password"
+            placeholder="Create a password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <CustomButton title="Register" onPress={handleRegister} loading={loading} />
+          <Text style={styles.loginText} onPress={() => navigation.navigate('Login')}>
+            Already have an account? <Text style={styles.loginLink}>Login</Text>
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
-  scroll: { padding: 24, flexGrow: 1, justifyContent: 'center' },
-  header: { marginBottom: 32 },
-  title: { fontSize: 32, fontWeight: 'bold', color: colors.primary, marginBottom: 8 },
-  subtitle: { fontSize: 16, color: colors.textLight },
-  form: { marginBottom: 32 },
-  btn: { marginTop: 16 },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
-  footerText: { color: colors.textLight },
-  footerLink: { color: colors.primary, fontWeight: 'bold' }
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  container: {
+    padding: 24,
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  header: {
+    marginBottom: 40,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  form: {
+    width: '100%',
+  },
+  loginText: {
+    marginTop: 20,
+    textAlign: 'center',
+    color: '#475569',
+  },
+  loginLink: {
+    color: '#FBBF24',
+    fontWeight: 'bold',
+  },
 });
+
+export default RegisterScreen;
