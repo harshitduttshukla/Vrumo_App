@@ -1,0 +1,5 @@
+﻿src/components/CustomButton.tsx(3,10): error TS2724: '"../utils/colors"' has no exported member named 'COLORS'. Did you mean 'colors'?
+src/components/Loader.tsx(3,10): error TS2724: '"../utils/colors"' has no exported member named 'COLORS'. Did you mean 'colors'?
+src/navigation/AppNavigator.tsx(23,6): error TS2741: Property 'id' is missing in type '{ children: Element[]; screenOptions: ({ route }: { route: RouteProp<ParamListBase, string>; navigation: BottomTabNavigationProp<ParamListBase, string, string>; theme: Theme; }) => { ...; }; }' but required in type '{ id: string; }'.
+src/navigation/AppNavigator.tsx(58,8): error TS2741: Property 'id' is missing in type '{ children: Element[]; screenOptions: { headerShown: false; animation: "slide_from_right"; }; }' but required in type '{ id: string; }'.
+src/navigation/AppNavigator.tsx(74,13): error TS2353: Object literal may only specify known properties, and 'headerBackTitleVisible' does not exist in type 'NativeStackNavigationOptions | ((props: { route: RouteProp<ParamListBase, "Booking">; navigation: NativeStackNavigationProp<ParamListBase, string, string>; theme: Theme; }) => NativeStackNavigationOptions)'.
