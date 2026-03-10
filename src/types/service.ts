@@ -3,6 +3,6 @@ export interface Service {
     name: string;
     description: string;
     price: number;
-    image: string;
+    image: any;
     category: 'car' | 'bike';
 }

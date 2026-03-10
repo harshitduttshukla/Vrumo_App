@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
@@ -23,7 +24,7 @@ const ServiceDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.container}>
-                <Image source={{ uri: service.image }} style={styles.image} />
+                <Image source={service.image} style={styles.image} />
                 <View style={styles.details}>
                     <Text style={styles.title}>{service.name}</Text>
                     <Text style={styles.price}>₹{service.price}</Text>
