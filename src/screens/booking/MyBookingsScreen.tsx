@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BookingCard from '../../components/BookingCard';
 import Loader from '../../components/Loader';
 import { Booking } from '../../types/booking';
@@ -43,7 +44,7 @@ const MyBookingsScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <Text style={styles.title}>My Bookings</Text>
         <FlatList
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   listContainer: {
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   emptyText: {
     textAlign: 'center',

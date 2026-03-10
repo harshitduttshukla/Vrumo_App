@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ServiceCard from '../../components/ServiceCard';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { Ionicons } from '@expo/vector-icons';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'MainTabs'>;
 
@@ -16,7 +18,7 @@ const services = [
     name: 'Exterior Wash',
     description: 'High-pressure foam wash',
     price: 199,
-    image: 'https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/swift_wash.png'),
     category: 'car' as const,
   },
   {
@@ -24,7 +26,7 @@ const services = [
     name: 'Interior Cleaning',
     description: 'Vacuuming and dashboard polishing',
     price: 399,
-    image: 'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/creta_interior.png'),
     category: 'car' as const,
   },
   {
@@ -32,7 +34,7 @@ const services = [
     name: 'Full Deep Cleaning',
     description: 'Complete interior and exterior detailing',
     price: 999,
-    image: 'https://images.unsplash.com/photo-1620063251760-4966601ad8ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/nexon_wash.png'),
     category: 'car' as const,
   },
   {
@@ -40,7 +42,7 @@ const services = [
     name: 'Ceramic Coating',
     description: 'Premium paint protection',
     price: 2999,
-    image: 'https://images.unsplash.com/photo-1550935579-22a4505fccb3?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/thar_polish.png'),
     category: 'car' as const,
   },
   {
@@ -48,7 +50,7 @@ const services = [
     name: 'Bike Wash',
     description: 'Foam wash for bikes',
     price: 99,
-    image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/enfield_wash.png'),
     category: 'bike' as const,
   },
   {
@@ -56,7 +58,7 @@ const services = [
     name: 'Chain Cleaning',
     description: 'Thorough chain cleaning and lubing',
     price: 149,
-    image: 'https://images.unsplash.com/photo-1558981033-0f0309284409?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/pulsar_chain.png'),
     category: 'bike' as const,
   },
   {
@@ -64,7 +66,7 @@ const services = [
     name: 'Bike Polishing',
     description: 'Wax polish to restore shine',
     price: 249,
-    image: 'https://images.unsplash.com/photo-1621245086812-401476b7bd4d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/apache_polish.png'),
     category: 'bike' as const,
   },
   {
@@ -72,7 +74,7 @@ const services = [
     name: 'Premium Detailing',
     description: 'Full body detailed cleaning',
     price: 499,
-    image: 'https://images.unsplash.com/photo-1609149724103-605a92bf6544?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    image: require('../../assets/images/duke_detail.png'),
     category: 'bike' as const,
   },
 ];
@@ -86,21 +88,34 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const bikeServices = services.filter((s) => s.category === 'bike');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.locationContainer}>
+          <Ionicons name="location-outline" size={24} color="#10B981" />
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationLabel}>Home <Ionicons name="chevron-down" size={14} color="#0F172A" /></Text>
+            <Text style={styles.locationSubText} numberOfLines={1}>50, Shaheed Lieutenant...</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.profileIconContainer} onPress={() => navigation.navigate('Profile')}>
+           <Ionicons name="person-circle-outline" size={36} color="#0F172A" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.banner}>
-          <Text style={styles.bannerTitle}>Premium Car & Bike Cleaning</Text>
+          <Text style={styles.bannerTitle}>Premium Cleaning</Text>
           <Text style={styles.bannerSubtitle}>At Your Doorstep</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>🚗 Car Cleaning</Text>
+        <Text style={styles.sectionTitle}>Car Services</Text>
         <View style={styles.cardContainer}>
           {carServices.map((service) => (
             <ServiceCard key={service.id} service={service} onPress={() => handleBook(service)} />
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>🏍 Bike Cleaning</Text>
+        <Text style={styles.sectionTitle}>Bike Services</Text>
         <View style={styles.cardContainer}>
           {bikeServices.map((service) => (
             <ServiceCard key={service.id} service={service} onPress={() => handleBook(service)} />
@@ -114,32 +129,61 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  locationTextContainer: {
+    marginLeft: 8,
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  locationSubText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  profileIconContainer: {
+    paddingLeft: 12,
   },
   container: {
     padding: 16,
+    paddingBottom: 100, // accommodate tab bar hiding content
   },
   banner: {
     backgroundColor: '#0F172A',
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     marginBottom: 24,
-    alignItems: 'center',
-    shadowColor: '#FBBF24',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
+    alignItems: 'flex-start',
   },
   bannerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   bannerSubtitle: {
-    fontSize: 16,
-    color: '#FBBF24',
+    fontSize: 14,
+    color: '#10B981',
     fontWeight: '600',
   },
   sectionTitle: {
@@ -147,9 +191,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#0F172A',
     marginBottom: 16,
+    marginTop: 4,
   },
   cardContainer: {
-    marginBottom: 24,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
 });
 

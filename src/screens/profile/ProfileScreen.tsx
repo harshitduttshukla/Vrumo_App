@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
 import { User } from '../../types/user';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,9 +14,9 @@ interface Props {
 
 const mockUser: User = {
   id: 'u-1',
-  name: 'John Doe',
-  email: 'john.doe@vrumo.in',
-  phone: '+91 9876543210',
+  name: 'harshit shukla',
+  email: 'harshit.shukla@vrumo.in',
+  phone: '+91 6388293612',
 };
 
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
@@ -27,7 +28,7 @@ const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.avatar}>
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
+    paddingBottom: 100,
   },
   header: {
     alignItems: 'center',

@@ -5,11 +5,15 @@ import MyBookingsScreen from '../screens/booking/MyBookingsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+    const insets = useSafeAreaInsets();
     return (
         <Tab.Navigator
+            id="RootTabNav"
             screenOptions={({ route }) => ({
                 headerShown: false,
                 tabBarIcon: ({ color, size }) => {
@@ -25,17 +29,18 @@ const TabNavigator = () => {
 
                     return <Ionicons name={iconName} size={size} color={color} />;
                 },
-                tabBarActiveTintColor: '#FBBF24',
+                tabBarActiveTintColor: '#10B981', // Urban Company green-ish or black
                 tabBarInactiveTintColor: '#94A3B8',
                 tabBarStyle: {
-                    backgroundColor: '#0F172A',
-                    borderTopWidth: 0,
-                    paddingBottom: 5,
-                    height: 60,
+                    backgroundColor: '#FFFFFF',
+                    borderTopWidth: 1,
+                    borderColor: '#E2E8F0',
+                    paddingBottom: insets.bottom > 0 ? insets.bottom : 5,
+                    height: 60 + (insets.bottom > 0 ? insets.bottom - 5 : 0),
                 },
                 tabBarLabelStyle: {
                     fontSize: 12,
-                    fontWeight: 'bold',
+                    fontWeight: '600',
                 },
             })}
         >
