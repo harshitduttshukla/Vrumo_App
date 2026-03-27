@@ -42,3 +42,11 @@ export const getUser = async () => {
     return null;
   }
 };
+
+export const clearAuth = async () => {
+  try {
+    await AsyncStorage.multiRemove(['userToken', 'userData']);
+  } catch (e) {
+    console.error('Error clearing auth data', e);
+  }
+};
