@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { getUser } from '../../utils/storage';
+import { createBooking, getMe } from '../../services/api';
 
 type BookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Booking'>;
 type BookingScreenRouteProp = RouteProp<RootStackParamList, 'Booking'>;
@@ -18,41 +20,92 @@ interface Props {
 const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const { service } = route.params;
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [user, setUser] = useState<any>(null);
+  const [vehicleType, setVehicleType] = useState('Car');
   const [address, setAddress] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetchingUser, setFetchingUser] = useState(true);
 
-  const handleConfirm = () => {
-    if (!name || !phone || !address || !vehicleModel || !date || !time) {
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const storedUser = await getUser();
+        if (!storedUser) {
+          navigation.replace('LoginPhone');
+          return;
+        }
+        
+        // Optionally verify with backend
+        const response = await getMe();
+        setUser(response.data);
+      } catch (err) {
+        navigation.replace('LoginPhone');
+      } finally {
+        setFetchingUser(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigation]);
+
+  const handleConfirm = async () => {
+    if (!address || !date || !time) {
       Alert.alert('Error', 'Please fill all details');
       return;
     }
 
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const bookingData = {
+        serviceType: service.name,
+        vehicleType: vehicleType,
+        date,
+        time,
+        address
+      };
+      
+      await createBooking(bookingData);
+      
       Alert.alert('Success', 'Booking Confirmed!', [
         { text: 'OK', onPress: () => navigation.popToTop() }
       ]);
-    }, 1500);
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || 'Booking failed. Please try again.';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (fetchingUser) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#2563EB" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.userBanner}>
+          <View style={styles.userIcon}>
+            <Text style={styles.userInitial}>{user?.name?.[0] || 'U'}</Text>
+          </View>
+          <View>
+            <Text style={styles.userName}>Booking for {user?.name}</Text>
+            <Text style={styles.userPhone}>{user?.phone || user?.phone_number}</Text>
+          </View>
+        </View>
+
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Booking Summary</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Service:</Text>
             <Text style={styles.value}>{service.name}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Vehicle:</Text>
-            <Text style={styles.value}>{vehicleModel || 'N/A'}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Price:</Text>
@@ -61,11 +114,26 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         <View style={styles.form}>
-          <Text style={styles.sectionTitle}>Your Details</Text>
-          <InputField label="Name" placeholder="Enter full name" value={name} onChangeText={setName} />
-          <InputField label="Phone Number" placeholder="Enter phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+          <View style={styles.formHeader}>
+            <Text style={styles.sectionTitle}>Service Details</Text>
+            <View style={styles.toggleContainer}>
+              {['Car', 'Bike'].map((type) => (
+                <View key={type} onPointerDown={() => setVehicleType(type)}>
+                  <Text 
+                    onPress={() => setVehicleType(type)}
+                    style={[
+                      styles.toggleButton,
+                      vehicleType === type && styles.toggleButtonActive
+                    ]}
+                  >
+                    {type.toUpperCase()}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
           <InputField label="Address" placeholder="Enter complete address" value={address} onChangeText={setAddress} />
-          <InputField label="Vehicle Model" placeholder="e.g. Tata Nexon or Royal Enfield" value={vehicleModel} onChangeText={setVehicleModel} />
           <InputField label="Date" placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
           <InputField label="Time Slot" placeholder="e.g. 10:00 AM - 12:00 PM" value={time} onChangeText={setTime} />
         </View>
@@ -147,6 +215,71 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderColor: '#E2E8F0',
+  },
+  userBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  userIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  userInitial: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  userPhone: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderColor: '#F1F5F9',
+    paddingBottom: 12,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    padding: 4,
+    borderRadius: 100,
+  },
+  toggleButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 100,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748B',
+    overflow: 'hidden',
+  },
+  toggleButtonActive: {
+    backgroundColor: '#FFFFFF',
+    color: '#2563EB',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
 

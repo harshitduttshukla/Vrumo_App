@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomButton from '../../components/CustomButton';
 import { User } from '../../types/user';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { getUser, clearAuth } from '../../utils/storage';
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 
@@ -12,31 +13,51 @@ interface Props {
   navigation: ProfileScreenNavigationProp;
 }
 
-const mockUser: User = {
-  id: 'u-1',
-  name: 'harshit shukla',
-  email: 'harshit.shukla@vrumo.in',
-  phone: '+91 6388293612',
-};
-
 const ProfileScreen: React.FC<Props> = ({ navigation }) => {
-  const handleLogout = () => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const data = await getUser();
+      if (data) {
+        setUser(data);
+      }
+    };
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => navigation.replace('Login'), style: 'destructive' },
+      { 
+        text: 'Logout', 
+        onPress: async () => {
+          await clearAuth();
+          navigation.replace('LoginPhone');
+        }, 
+        style: 'destructive' 
+      },
     ]);
   };
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{mockUser.name.charAt(0)}</Text>
+            <Text style={styles.avatarText}>{user.name.charAt(0).toUpperCase()}</Text>
           </View>
-          <Text style={styles.name}>{mockUser.name}</Text>
-          <Text style={styles.contact}>{mockUser.email}</Text>
-          <Text style={styles.contact}>{mockUser.phone}</Text>
+          <Text style={styles.name}>{user.name}</Text>
+          <Text style={styles.contact}>{user.email}</Text>
+          <Text style={styles.contact}>{user.phone || user.phone_number}</Text>
         </View>
 
         <View style={styles.actions}>
