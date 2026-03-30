@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
+import LocationPicker from '../../components/LocationPicker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { updateProfile, getMe } from '../../services/api';
-import { storeUser } from '../../utils/storage';
+import { storeUser, getUser } from '../../utils/storage';
 
 type ProfileSetupScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ProfileSetup'>;
 
@@ -16,8 +18,21 @@ interface Props {
 const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{name?: string, email?: string}>({});
+
+  useEffect(() => {
+    const loadData = async () => {
+      const u = await getUser();
+      if (u) {
+        if (u.name) setName(u.name);
+        if (u.email) setEmail(u.email);
+      }
+    };
+    loadData();
+  }, []);
 
   const validate = () => {
     const newErrors: {name?: string, email?: string} = {};
@@ -33,17 +48,29 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true);
     try {
-      await updateProfile(name, email);
+      await updateProfile(name, email, latitude || undefined, longitude || undefined);
       
       // Refresh user data in storage
       const meResponse = await getMe();
       await storeUser(meResponse.data);
       
       Alert.alert('Success', 'Profile setup complete!', [
-        { text: 'OK', onPress: () => navigation.replace('MainTabs') }
+        { 
+          text: 'OK', 
+          onPress: () => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.replace('MainTabs');
+            }
+          }
+        }
       ]);
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Failed to update profile. Please try again.';
+      console.log('Update Profile Error:', err.response?.data);
+      const detail = err.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : 
+                  (Array.isArray(detail) ? detail[0]?.msg : 'Failed to update profile. Please try again.');
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -59,8 +86,8 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.container}>
             <View style={styles.header}>
-              <Text style={styles.title}>Complete <Text style={styles.highlight}>Profile</Text></Text>
-              <Text style={styles.subtitle}>Just a few more details to get you started</Text>
+              <Text style={styles.title}>Update <Text style={styles.highlight}>Profile</Text></Text>
+              <Text style={styles.subtitle}>Keep your contact and location details up to date</Text>
             </View>
 
             <View style={styles.form}>
@@ -82,8 +109,18 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
                 error={errors.email}
               />
 
+              <View style={styles.locationSection}>
+                <Text style={styles.locationLabel}>Set Your Home Location</Text>
+                <LocationPicker 
+                  onLocationSelect={(loc) => {
+                    setLatitude(loc.latitude);
+                    setLongitude(loc.longitude);
+                  }} 
+                />
+              </View>
+
               <CustomButton 
-                title="Finish Setup" 
+                title="Save Changes" 
                 onPress={handleComplete} 
                 loading={loading} 
                 style={styles.button}
@@ -138,6 +175,16 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     marginTop: 16,
+  },
+  locationSection: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  locationLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginBottom: 8,
   },
 });
 

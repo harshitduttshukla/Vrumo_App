@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../../constants/Colors';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
+import LocationPicker from '../../components/LocationPicker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -24,8 +27,10 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [vehicleType, setVehicleType] = useState('Car');
   const [address, setAddress] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState(service.date || '');
+  const [time, setTime] = useState(service.slot || '');
+  const [latitude, setLatitude] = useState<number | null>(service.latitude || null);
+  const [longitude, setLongitude] = useState<number | null>(service.longitude || null);
   const [loading, setLoading] = useState(false);
   const [fetchingUser, setFetchingUser] = useState(true);
 
@@ -64,7 +69,9 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
         vehicleType: vehicleType,
         date,
         time,
-        address
+        address,
+        latitude,
+        longitude
       };
       
       await createBooking(bookingData);
@@ -115,27 +122,68 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <View style={styles.form}>
           <View style={styles.formHeader}>
-            <Text style={styles.sectionTitle}>Service Details</Text>
+            <Text style={styles.sectionTitle}>Vehicle Type</Text>
             <View style={styles.toggleContainer}>
               {['Car', 'Bike'].map((type) => (
-                <View key={type} onPointerDown={() => setVehicleType(type)}>
-                  <Text 
-                    onPress={() => setVehicleType(type)}
-                    style={[
-                      styles.toggleButton,
-                      vehicleType === type && styles.toggleButtonActive
-                    ]}
-                  >
+                <TouchableOpacity 
+                  key={type} 
+                  onPress={() => setVehicleType(type)}
+                  style={[
+                    styles.toggleButton,
+                    vehicleType === type && styles.toggleButtonActive
+                  ]}
+                >
+                  <Text style={[
+                    styles.toggleButtonText,
+                    vehicleType === type && styles.toggleButtonTextActive
+                  ]}>
                     {type.toUpperCase()}
                   </Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <InputField label="Address" placeholder="Enter complete address" value={address} onChangeText={setAddress} />
-          <InputField label="Date" placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
-          <InputField label="Time Slot" placeholder="e.g. 10:00 AM - 12:00 PM" value={time} onChangeText={setTime} />
+          {(date && time) ? (
+            <View style={styles.slotConfirmed}>
+              <View style={styles.slotInfo}>
+                <Ionicons name="calendar" size={20} color={Colors.primary} />
+                <View style={{ marginLeft: 12 }}>
+                  <Text style={styles.slotLabel}>Service Scheduled</Text>
+                  <Text style={styles.slotValue}>
+                    {date === new Date().toISOString().split('T')[0] ? 'Today' : date} at {time}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity 
+                style={styles.changeBtn} 
+                onPress={() => navigation.goBack()}
+              >
+                <Text style={styles.changeText}>Change Slot</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.formHeader}>
+                <Text style={styles.sectionTitle}>Service Details</Text>
+              </View>
+              <InputField label="Date" placeholder="YYYY-MM-DD" value={date} onChangeText={setDate} />
+              <InputField label="Time Slot" placeholder="e.g. 10:00 AM - 12:00 PM" value={time} onChangeText={setTime} />
+            </>
+          )}
+
+          <View style={styles.formHeader}>
+            <Text style={styles.sectionTitle}>Service Location</Text>
+          </View>
+          
+          <LocationPicker 
+            onLocationSelect={(loc) => {
+              setLatitude(loc.latitude);
+              setLongitude(loc.longitude);
+            }} 
+          />
+
+          <InputField label="Address" placeholder="Enter complete address (Floor/Flat no.)" value={address} onChangeText={setAddress} />
         </View>
       </ScrollView>
       <View style={styles.footer}>
@@ -249,6 +297,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
   },
+  slotConfirmed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F0F9FF',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    marginBottom: 20,
+  },
+  slotInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  slotLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0369A1',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  slotValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#0C4A6E',
+    marginTop: 2,
+  },
+  changeBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  changeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0369A1',
+  },
   formHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -268,18 +358,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 100,
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#64748B',
-    overflow: 'hidden',
   },
   toggleButtonActive: {
     backgroundColor: '#FFFFFF',
-    color: '#2563EB',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  toggleButtonText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748B',
+  },
+  toggleButtonTextActive: {
+    color: '#2563EB',
   },
 });
 

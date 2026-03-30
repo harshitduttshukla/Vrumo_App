@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -53,7 +54,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             secureTextEntry
           />
           <CustomButton title="Login" onPress={handleLogin} loading={loading} />
-          <Text style={styles.registerText} onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerText} onPress={() => navigation.navigate('LoginPhone' as any)}>
             Don't have an account? <Text style={styles.registerLink}>Register</Text>
           </Text>
         </View>

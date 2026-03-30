@@ -12,7 +12,10 @@
       "backgroundColor": "#0F172A"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Vrumo needs your location to provide doorstep services."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,10 +23,24 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "com.harshitshukla1.Vrumo",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "50729d32-a948-48b7-8382-c2f7e4d9b4fd"
+      }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-location"
+    ]
   }
 }

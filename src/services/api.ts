@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import { getToken } from '../utils/storage';
 
 const BASE_URL = Platform.OS === 'android' 
-  ? 'http://10.22.50.160:8000' 
-  : 'http://10.22.50.160:8000';
+  ? 'http://192.168.135.160:8000' 
+  : 'http://192.168.135.160:8000';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -40,8 +40,12 @@ export const createBooking = async (bookingData: any) => {
   return api.post('/api/bookings', bookingData);
 };
 
-export const updateProfile = async (name: string, email: string) => {
-  return api.put('/auth/update-profile', { name, email });
+export const updateProfile = async (name: string, email: string, latitude?: number, longitude?: number) => {
+  return api.put('/auth/update-profile', { name, email, latitude, longitude });
+};
+
+export const getUserBookings = async (userId: string) => {
+  return api.get(`/api/bookings/user/${userId}`);
 };
 
 export default api;
