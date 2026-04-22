@@ -18,7 +18,7 @@ interface Props {
 }
 
 const VerifyOTPScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { phone } = route.params;
+  const { email } = route.params;
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
@@ -45,7 +45,7 @@ const VerifyOTPScreen: React.FC<Props> = ({ navigation, route }) => {
 
     setLoading(true);
     try {
-      const response = await verifyOtp(phone, otp);
+      const response = await verifyOtp(email, otp);
       const { access_token, user, is_new_user } = response.data;
       
       await storeToken(access_token);
@@ -68,7 +68,7 @@ const VerifyOTPScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!canResend) return;
     
     try {
-      await sendOtp(phone);
+      await sendOtp(email);
       setTimer(30);
       setCanResend(false);
       setCode(['', '', '', '', '', '']);
@@ -82,7 +82,7 @@ const VerifyOTPScreen: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Confirm <Text style={styles.highlight}>OTP</Text></Text>
-          <Text style={styles.subtitle}>Sent to <Text style={styles.phoneText}>+91 {phone}</Text></Text>
+          <Text style={styles.subtitle}>Sent to <Text style={styles.phoneText}>{email}</Text></Text>
         </View>
 
         <View style={styles.form}>
@@ -111,7 +111,7 @@ const VerifyOTPScreen: React.FC<Props> = ({ navigation, route }) => {
           style={styles.backButton} 
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backText}>Edit Phone Number</Text>
+          <Text style={styles.backText}>Edit Email Address</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

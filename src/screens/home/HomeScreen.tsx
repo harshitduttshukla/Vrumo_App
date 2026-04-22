@@ -73,21 +73,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* Car Card */}
-        <VrumoCard style={styles.carCard}>
-          <View style={styles.carCardHeader}>
-            <View>
-              <Text style={styles.carPlate}>UP 32 · AB 4821</Text>
-              <Text style={styles.carModel}>Honda City ZX</Text>
-              <Text style={styles.carLoc}>{address}</Text>
-            </View>
-            <MaterialCommunityIcons name="car-sports" size={48} color={Colors.primary} />
-          </View>
-          <View style={styles.carStats}>
-            <StatBox value="18" label="Washes" />
-            <StatBox value="78" label="Health" color={Colors.secondary} />
-            <StatBox value="Apr 2" label="PUC Due" color={Colors.warning} />
-          </View>
-        </VrumoCard>
+        
 
         {/* Next Service */}
         <VrumoCard variant="flat" style={styles.nextCard}>
@@ -103,13 +89,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </VrumoCard>
 
-        {/* AI Alert */}
-        <AlertCard 
-          title="AI · 2 Issues Detected" 
-          message="Rear bumper dent · PUC expires Apr 2" 
-          cta="View health report →"
-          onPress={() => navigation.navigate('Health' as any)}
-        />
+       
 
         {/* Quick Services */}
         <Text style={styles.secLabel}>Quick services</Text>
@@ -117,7 +97,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           <QuickServiceBtn 
             icon="💧" 
             name="Professional Wash" 
-            sub="Staring  at  ₹299" 
+            sub="Staring  at  ₹249" 
             onPress={() => navigation.navigate('MainTabs' as any, { screen: 'Services', params: { initialService: 'wash' } } as any)} 
           />
           <QuickServiceBtn 

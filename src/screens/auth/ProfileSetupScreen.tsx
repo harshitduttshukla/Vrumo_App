@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../constants/Colors';
 import InputField from '../../components/InputField';
 import CustomButton from '../../components/CustomButton';
 import LocationPicker from '../../components/LocationPicker';
@@ -20,8 +21,10 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [vehicleType, setVehicleType] = useState<string | null>(null);
+  const [vehicleSeats, setVehicleSeats] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{name?: string, email?: string}>({});
+  const [errors, setErrors] = useState<{name?: string, email?: string, vehicleType?: string}>({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -29,15 +32,18 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
       if (u) {
         if (u.name) setName(u.name);
         if (u.email) setEmail(u.email);
+        if (u.vehicle_type) setVehicleType(u.vehicle_type);
+        if (u.vehicle_seats) setVehicleSeats(u.vehicle_seats);
       }
     };
     loadData();
   }, []);
 
   const validate = () => {
-    const newErrors: {name?: string, email?: string} = {};
+    const newErrors: {name?: string, email?: string, vehicleType?: string} = {};
     if (name.length < 2) newErrors.name = 'Name must be at least 2 characters';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Enter a valid email address';
+    if (!vehicleType) newErrors.vehicleType = 'Please select a vehicle type';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -48,7 +54,14 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
 
     setLoading(true);
     try {
-      await updateProfile(name, email, latitude || undefined, longitude || undefined);
+      await updateProfile(
+        name, 
+        email, 
+        latitude || undefined, 
+        longitude || undefined,
+        vehicleType || undefined,
+        vehicleSeats || undefined
+      );
       
       // Refresh user data in storage
       const meResponse = await getMe();
@@ -108,6 +121,48 @@ const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
                 autoCapitalize="none"
                 error={errors.email}
               />
+              
+              <View style={styles.selectionSection}>
+                <Text style={styles.sectionLabel}>Select Your Vehicle</Text>
+                <View style={styles.row}>
+                  <TouchableOpacity 
+                    style={[styles.chip, vehicleType === '2 Wheeler' && styles.chipActive]} 
+                    onPress={() => {
+                        setVehicleType('2 Wheeler');
+                        setVehicleSeats(null);
+                    }}
+                  >
+                    <Text style={[styles.chipText, vehicleType === '2 Wheeler' && styles.chipTextActive]}>2 Wheeler</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.chip, vehicleType === '4 Wheeler' && styles.chipActive]} 
+                    onPress={() => setVehicleType('4 Wheeler')}
+                  >
+                    <Text style={[styles.chipText, vehicleType === '4 Wheeler' && styles.chipTextActive]}>4 Wheeler</Text>
+                  </TouchableOpacity>
+                </View>
+                {errors.vehicleType && <Text style={styles.errorText}>{errors.vehicleType}</Text>}
+              </View>
+
+              {vehicleType === '4 Wheeler' && (
+                <View style={[styles.selectionSection, { marginTop: 10 }]}>
+                    <Text style={styles.sectionLabel}>Seating Capacity</Text>
+                    <View style={styles.row}>
+                    <TouchableOpacity 
+                        style={[styles.chip, vehicleSeats === '5 Seater' && styles.chipActive]} 
+                        onPress={() => setVehicleSeats('5 Seater')}
+                    >
+                        <Text style={[styles.chipText, vehicleSeats === '5 Seater' && styles.chipTextActive]}>5 Seater</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.chip, vehicleSeats === '7 Seater' && styles.chipActive]} 
+                        onPress={() => setVehicleSeats('7 Seater')}
+                    >
+                        <Text style={[styles.chipText, vehicleSeats === '7 Seater' && styles.chipTextActive]}>7 Seater</Text>
+                    </TouchableOpacity>
+                    </View>
+                </View>
+              )}
 
               <View style={styles.locationSection}>
                 <Text style={styles.locationLabel}>Set Your Home Location</Text>
@@ -185,6 +240,46 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#475569',
     marginBottom: 8,
+  },
+  selectionSection: {
+    marginTop: 16,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#475569',
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  chip: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  chipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  chipTextActive: {
+    color: Colors.primaryDark,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#EF4444',
+    marginTop: 4,
   },
 });
 

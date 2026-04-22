@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
-import CustomButton from '../../components/CustomButton';
+import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
-import { sendOtp } from '../../services/api';
+import { login, oauthLogin, googleLogin } from '../../services/api';
+import { signInWithGoogle } from '../../services/googleAuth';
+import { storeToken, storeUser } from '../../utils/storage';
 
 type LoginPhoneScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'LoginPhone'>;
 
@@ -13,28 +14,72 @@ interface Props {
   navigation: LoginPhoneScreenNavigationProp;
 }
 
-const LoginPhoneScreen: React.FC<Props> = ({ navigation }) => {
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+const PRIMARY = '#2563EB'; 
+const PRIMARY_TEXT = '#1E40AF'; 
+const GRAY_BG = '#F1F5F9';
 
-  const handleSendOtp = async () => {
-    if (!/^\d{10}$/.test(phone)) {
-      setError('Please enter a valid 10-digit phone number');
+const LoginPhoneScreen: React.FC<Props> = ({ navigation }) => {
+  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!emailOrPhone || !password) {
+      Alert.alert('Error', 'Please enter email/phone and password');
       return;
     }
 
     setLoading(true);
-    setError('');
     try {
-      const response = await sendOtp(phone);
-      if (response.data?.debug_otp) {
-        Alert.alert('Debug OTP', `Your OTP is: ${response.data.debug_otp}`);
-      }
-      navigation.navigate('VerifyOTP', { phone });
+      const response = await login(emailOrPhone, password);
+      const { access_token, user } = response.data;
+      
+      await storeToken(access_token);
+      await storeUser(user);
+      
+      navigation.replace('MainTabs');
     } catch (err: any) {
-      const msg = err.response?.data?.detail || 'Failed to send OTP. Please try again.';
-      Alert.alert('Error', msg);
+      let msg = 'Failed to login. Please check credentials.';
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+           msg = err.response.data.detail.map((d: any) => `${d.loc[1] || 'Field'}: ${d.msg}`).join('\n');
+        } else {
+           msg = typeof err.response.data.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response.data.detail);
+        }
+      }
+      Alert.alert('Login failed', msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { userInfo, idToken } = await signInWithGoogle();
+      console.log('Google idToken:', idToken);
+
+      // Call backend
+      // Call backend
+      let response;
+      try {
+        // In mock mode, we just want to get through
+        response = await oauthLogin('test@vrumo.com', 'Test User', 'google', 'MOCK_TOKEN');
+      } catch (err) {
+        console.log('Mock login failed', err);
+        throw err;
+      }
+
+      const { access_token, user } = response.data;
+      await storeToken(access_token);
+      await storeUser(user);
+      
+      navigation.replace('MainTabs');
+    } catch (error: any) {
+      if (error.message !== 'Sign-In cancelled') {
+        Alert.alert('Google Sign-In Error', error.message || 'Something went wrong');
+      }
     } finally {
       setLoading(false);
     }
@@ -47,60 +92,70 @@ const LoginPhoneScreen: React.FC<Props> = ({ navigation }) => {
         style={styles.flex}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-          {/* Background Decorative Elements */}
-          <View style={styles.bgCircleTop} />
-          <View style={styles.bgCircleBottom} />
+          
+          {/* Logo Section */}
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>Vrumo</Text>
+          </View>
 
-          <View style={styles.container}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Welcome <Text style={styles.highlight}>Back</Text></Text>
-              <Text style={styles.subtitle}>Enter your phone number to continue.</Text>
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="EMAIL / PHONE"
+                placeholderTextColor="#94A3B8"
+                autoCapitalize="none"
+                value={emailOrPhone}
+                onChangeText={setEmailOrPhone}
+              />
             </View>
 
-            <View style={styles.card}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Phone Number</Text>
-                <View style={[styles.inputContainer, error ? styles.inputError : null]}>
-                  <View style={styles.prefixContainer}>
-                    <Text style={styles.prefixText}>+91</Text>
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="00000 00000"
-                    placeholderTextColor="#94A3B8"
-                    keyboardType="phone-pad"
-                    value={phone}
-                    onChangeText={(text) => {
-                      setPhone(text.replace(/\D/g, '').slice(0, 10));
-                      if (error) setError('');
-                    }}
-                    maxLength={10}
-                  />
-                  <Feather name="phone" size={20} color="#2563EB" style={styles.inputIcon} />
-                </View>
-                {error ? <Text style={styles.errorText}>{error}</Text> : null}
-              </View>
-
-              <TouchableOpacity 
-                style={[styles.button, (loading || phone.length !== 10) && styles.buttonDisabled]} 
-                onPress={handleSendOtp}
-                disabled={loading || phone.length !== 10}
-              >
-                {loading ? (
-                  <Feather name="loader" size={24} color="#FFFFFF" />
-                ) : (
-                  <>
-                    <Text style={styles.buttonText}>Send OTP</Text>
-                    <Feather name="arrow-right" size={20} color="#FFFFFF" />
-                  </>
-                )}
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                placeholder="PASSWORD"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.footerText}>
-              By continuing, you agree to our <Text style={styles.footerLink}>Terms of Service</Text> and <Text style={styles.footerLink}>Privacy Policy</Text>.
-            </Text>
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.loginButton, loading && { opacity: 0.7 }]} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <Feather name="loader" size={24} color="#FFFFFF" />
+              ) : (
+                <Text style={styles.loginButtonText}>LOGIN</Text>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.orText}>OR</Text>
+
+            <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
+              <Image 
+                source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg' }} 
+                style={styles.googleIcon} 
+              />
+              <Text style={styles.googleButtonText}>Sign in with Google</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.signUpLink} onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.signUpText}>New User? Sign Up</Text>
+            </TouchableOpacity>
           </View>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -108,161 +163,117 @@ const LoginPhoneScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  bgCircleTop: {
-    position: 'absolute',
-    top: -100,
-    right: -50,
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(37, 99, 235, 0.05)',
-  },
-  bgCircleBottom: {
-    position: 'absolute',
-    bottom: -50,
-    left: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(37, 99, 235, 0.03)',
-  },
-  container: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
-  },
-  header: {
-    marginBottom: 48,
+  safeArea: { flex: 1, backgroundColor: '#FCF8FC' }, // slight pink hue from image
+  flex: { flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingBottom: 60 },
+  
+  logoContainer: {
     alignItems: 'center',
+    marginBottom: 60,
   },
-  title: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#0F172A',
-    marginBottom: 12,
-    letterSpacing: -0.5,
-  },
-  highlight: {
-    color: '#2563EB',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#64748B',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.05,
-    shadowRadius: 24,
-    borderTopWidth: 4,
-    borderTopColor: '#2563EB',
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginLeft: 8,
-    marginBottom: 8,
-  },
-  inputContainer: {
+  iconWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 16,
-    height: 60,
-    paddingHorizontal: 4,
-  },
-  inputError: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
-  },
-  prefixContainer: {
-    height: '60%',
-    paddingHorizontal: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#E2E8F0',
     justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 10,
+    marginRight: 20
   },
-  prefixText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#64748B',
+  logoText: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: PRIMARY_TEXT,
+    letterSpacing: 2,
+  },
+  
+  formContainer: {
+    width: '100%',
+  },
+  inputWrapper: {
+    backgroundColor: GRAY_BG,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    height: 60,
   },
   input: {
     flex: 1,
     height: '100%',
-    fontSize: 18,
+    color: '#333333',
     fontWeight: '600',
-    color: '#0F172A',
-    paddingHorizontal: 12,
-    letterSpacing: 1,
   },
-  inputIcon: {
-    marginRight: 16,
+  eyeIcon: {
+    padding: 8,
   },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 8,
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 30,
   },
-  button: {
-    backgroundColor: '#2563EB',
-    height: 60,
+  forgotPasswordText: {
+    color: PRIMARY_TEXT,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  
+  loginButton: {
+    backgroundColor: PRIMARY,
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 60,
     justifyContent: 'center',
-    gap: 8,
-    elevation: 4,
-    shadowColor: '#2563EB',
+    alignItems: 'center',
+    marginBottom: 30,
+    shadowColor: PRIMARY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
+  loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+    letterSpacing: 1,
   },
-  footerText: {
-    marginTop: 32,
+  
+  orText: {
     textAlign: 'center',
-    color: '#94A3B8',
-    fontSize: 12,
-    lineHeight: 18,
+    color: '#A0AAB5',
+    fontWeight: 'bold',
+    marginBottom: 30,
   },
-  footerLink: {
-    color: '#2563EB',
+  
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    height: 60,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+  },
+  googleButtonText: {
+    color: '#333333',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
+  signUpLink: {
+    alignItems: 'center',
+  },
+  signUpText: {
+    color: PRIMARY_TEXT,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -66,12 +66,14 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       const bookingData = {
         serviceType: service.name,
-        vehicleType: vehicleType,
+        vehicleType: service.seats ? `${vehicleType} (${service.seats}-Seater)` : vehicleType,
         date,
         time,
         address,
         latitude,
-        longitude
+        longitude,
+        vehicleSeats: service.seats,
+        totalPrice: service.price
       };
       
       await createBooking(bookingData);
@@ -114,6 +116,12 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.label}>Service:</Text>
             <Text style={styles.value}>{service.name}</Text>
           </View>
+          {service.seats && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Configuration:</Text>
+              <Text style={styles.value}>{service.seats}-Seater</Text>
+            </View>
+          )}
           <View style={styles.row}>
             <Text style={styles.label}>Price:</Text>
             <Text style={styles.price}>₹{service.price}</Text>

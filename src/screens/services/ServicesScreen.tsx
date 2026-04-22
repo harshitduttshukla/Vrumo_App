@@ -17,6 +17,10 @@ interface Package {
   name: string;
   desc: string;
   price: number;
+  price_5_seater?: number;
+  discount_price_5_seater?: number;
+  price_7_seater?: number;
+  discount_price_7_seater?: number;
   unit?: string;
   tag?: string;
   include?: string[];
@@ -35,7 +39,11 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       id: 'swift', 
       name: 'Vrumo Swift Wash', 
       desc: 'Quick exterior refresh with Pressure Washer. 30-40 mins.', 
-      price: 299,
+      price: 249,
+      price_5_seater: 299,
+      discount_price_5_seater: 249,
+      price_7_seater: 499,
+      discount_price_7_seater: 399,
       unit: '/session',
       include: ['PH-neutral shampoo foam', 'Pressure rinse (Microfiber dry)', 'Tyre & rim wipe (dressing)', 'Windshield clean']
     },
@@ -43,7 +51,11 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       id: 'signature', 
       name: 'Vrumo Signature Wash', 
       desc: 'Full exterior + interior refresh with Pressure Washer.', 
-      price: 549,
+      price: 349,
+      price_5_seater: 399,
+      discount_price_5_seater: 349,
+      price_7_seater: 599,
+      discount_price_7_seater: 499,
       unit: '/session',
       tag: 'BESTSELLER',
       include: ['Everything in Swift Wash', 'Dashboard & console UV dressing', 'Full interior vacuum (incl. boot)', 'Odour neutraliser spray']
@@ -55,6 +67,10 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       name: 'Vrumo Colony Care', 
       desc: '4 professional washes/month. Always on schedule.', 
       price: 999,
+      price_5_seater: 1099,
+      discount_price_5_seater: 999,
+      price_7_seater: 1299,
+      discount_price_7_seater: 1199,
       unit: '/mo',
       include: ['4 High-pressure foam pre-soaks', 'Pressure rinse + Microfiber dry', 'Tyre cleaning + shine dressing', 'Before/after photo proof']
     },
@@ -62,7 +78,11 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       id: 'colony_elite', 
       name: 'Vrumo Colony Elite', 
       desc: '4 foam washes + full interior every visit.', 
-      price: 1499,
+      price: 1199,
+      price_5_seater: 1299,
+      discount_price_5_seater: 1199,
+      price_7_seater: 1599,
+      discount_price_7_seater: 1399,
       unit: '/mo',
       tag: 'FEATURED',
       include: ['Everything in Colony Care', 'Full interior vacuum every visit', 'UV dressing on all panels', 'Paint wax seal (Quarterly)']
@@ -73,7 +93,11 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       id: 'society_shield', 
       name: 'Vrumo Society Shield', 
       desc: 'Alt-day bucket wash + weekly interior. RWA compliant.', 
-      price: 2000,
+      price: 999,
+      price_5_seater: 1099,
+      discount_price_5_seater: 999,
+      price_7_seater: 1299,
+      discount_price_7_seater: 1199,
       unit: '/mo',
       include: ['13-14 Alt-day bucket washes', 'PH-neutral lab-tested chemicals', 'Weekly full interior care', 'Dedicated slot: 6:30-8:00 AM']
     },
@@ -81,7 +105,11 @@ const WASH_PACKAGES: Record<WashSegment, Package[]> = {
       id: 'society_prestige', 
       name: 'Vrumo Society Prestige', 
       desc: 'Alt-day bucket + interior 4x + quarterly detail.', 
-      price: 2800,
+      price: 1199,
+      price_5_seater: 1499,
+      discount_price_5_seater: 1199,
+      price_7_seater: 1699,
+      discount_price_7_seater: 1499,
       unit: '/mo',
       tag: 'ULTIMATE',
       include: ['13-14 Alt-day bucket washes', 'Premium nano-ceramic seal (Monthly)', 'Weekly deep interior clean', 'Quarterly mini-detail included']
@@ -139,7 +167,7 @@ const ServicesScreen: React.FC = () => {
   const route = useRoute<any>();
   const [currentView, setCurrentView] = useState<ServiceId>('home');
   const [washSegment, setWashSegment] = useState<WashSegment>('instant');
-  // const [vehicleType, setVehicleType] = useState<VehicleType>('sedan');
+  const [vehicleSeats, setVehicleSeats] = useState<'5' | '7'>('5');
   const [selectedPkg, setSelectedPkg] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
@@ -171,7 +199,7 @@ const ServicesScreen: React.FC = () => {
             icon="💧" 
             name="Professional Wash" 
             desc="Instant · Monthly · Society · Deep Clean" 
-            price="From ₹299" 
+            price="From ₹249" 
             tag="popular" 
             onPress={() => openService('wash')} 
           />
@@ -236,11 +264,38 @@ const ServicesScreen: React.FC = () => {
               ))}
             </View>
 
-            {/* Vehicle Type selector removed as per request */}
+            <View style={styles.vehicleTypeBox}>
+              <Text style={styles.secLabel}>Vehicle Configuration</Text>
+              <View style={styles.vehicleToggle}>
+                <TouchableOpacity 
+                  style={[styles.vehicleBtn, vehicleSeats === '5' && styles.vehicleBtnOn]} 
+                  onPress={() => setVehicleSeats('5')}
+                >
+                  <Ionicons name="car-outline" size={20} color={vehicleSeats === '5' ? Colors.white : Colors.textSecondary} />
+                  <Text style={[styles.vehicleBtnText, vehicleSeats === '5' && styles.vehicleBtnTextOn]}>5 SEATER</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.vehicleBtn, vehicleSeats === '7' && styles.vehicleBtnOn]} 
+                  onPress={() => setVehicleSeats('7')}
+                >
+                  <Ionicons name="bus-outline" size={20} color={vehicleSeats === '7' ? Colors.white : Colors.textSecondary} />
+                  <Text style={[styles.vehicleBtnText, vehicleSeats === '7' && styles.vehicleBtnTextOn]}>7 SEATER</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <Text style={styles.secLabel}>Select Plan</Text>
             {WASH_PACKAGES[washSegment].map((pkg) => {
-              const currentPrice = pkg.price;
+              const isSeatSpecific = pkg.price_5_seater && pkg.price_7_seater;
+              const basePrice = isSeatSpecific 
+                ? (vehicleSeats === '5' ? pkg.price_5_seater : pkg.price_7_seater)
+                : pkg.price;
+              const discountedPrice = isSeatSpecific
+                ? (vehicleSeats === '5' ? pkg.discount_price_5_seater : pkg.discount_price_7_seater)
+                : pkg.price;
+              
+              const hasDiscount = basePrice !== discountedPrice;
+
               return (
                 <TouchableOpacity 
                   key={pkg.id} 
@@ -274,7 +329,10 @@ const ServicesScreen: React.FC = () => {
                     )}
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.pkgPrice}>₹{currentPrice}</Text>
+                    {hasDiscount && (
+                      <Text style={styles.originalPrice}>₹{basePrice}</Text>
+                    )}
+                    <Text style={[styles.pkgPrice, hasDiscount && { color: Colors.secondary }]}>₹{discountedPrice}</Text>
                     <Text style={styles.pkgUnit}>{pkg.unit}</Text>
                   </View>
                 </TouchableOpacity>
@@ -313,9 +371,16 @@ const ServicesScreen: React.FC = () => {
               activeOpacity={0.8}
               onPress={() => {
                 const pkgObj = WASH_PACKAGES[washSegment]?.find(p => p.id === selectedPkg);
+                const isSeatSpecific = pkgObj?.price_5_seater && pkgObj?.price_7_seater;
+                const finalPrice = isSeatSpecific
+                  ? (vehicleSeats === '5' ? pkgObj?.discount_price_5_seater : pkgObj?.discount_price_7_seater)
+                  : pkgObj?.price;
+
                 navigation.navigate('Booking', { 
                   service: {
                     ...pkgObj,
+                    price: finalPrice,
+                    seats: vehicleSeats,
                     segment: washSegment,
                     slot: selectedSlot,
                     date: washSegment === 'instant' ? new Date().toISOString().split('T')[0] : (pkgObj as any)?.date
@@ -578,6 +643,7 @@ const styles = StyleSheet.create({
   tagPurple: { backgroundColor: '#F3E8FF' },
   pkgTagText: { fontSize: 9, fontWeight: '800', color: Colors.text },
   pkgDesc: { fontSize: 13, color: Colors.textSecondary, lineHeight: 18 },
+  originalPrice: { fontSize: 12, color: Colors.textTertiary, textDecorationLine: 'line-through', marginBottom: 2 },
   pkgPrice: { fontSize: 18, fontWeight: '800', color: Colors.text },
   pkgUnit: { fontSize: 10, color: Colors.textTertiary, textAlign: 'right' },
 

@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginPhoneScreen from '../screens/auth/LoginPhoneScreen';
 import VerifyOTPScreen from '../screens/auth/VerifyOTPScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
 import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
 import SplashScreen from '../screens/auth/SplashScreen';
 import TabNavigator from './TabNavigator';
@@ -13,7 +14,8 @@ import BookingHistoryScreen from '../screens/profile/BookingHistoryScreen';
 export type RootStackParamList = {
   Splash: undefined;
   LoginPhone: undefined;
-  VerifyOTP: { phone: string };
+  VerifyOTP: { email: string };
+  Register: undefined;
   MainTabs: undefined;
   ServiceDetails: { service: any };
   Booking: { service: any };
@@ -34,6 +36,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="LoginPhone" component={LoginPhoneScreen} />
         <Stack.Screen name="VerifyOTP" component={VerifyOTPScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} options={{ headerShown: true, title: 'Service Details' }} />

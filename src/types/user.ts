@@ -5,4 +5,6 @@ export interface User {
     phone: string;
     phone_number?: string;
     role?: string;
+    vehicle_type?: string;
+    vehicle_seats?: string;
 }
